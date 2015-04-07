@@ -1,25 +1,70 @@
 ---
 title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+author: "JCFrench"
+date: "4/6/2015"
+output: html_document
 ---
 
 
 ## Loading and preprocessing the data
 
+```{r}
+setwd("~/RepData/data")
+download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip", 
+              "~/RepData/data/repdata+data+activity.zip", method="curl", 
+              quiet = FALSE, mode = "wb"
+              )
+unzip("repdata+data+activity.zip")
+activity <- tbl_df(read.csv("~/RepData/data/activity.csv"))
+summary(activity)
 
+```
 
 ## What is mean total number of steps taken per day?
+```{r}
 
+stepperday <- activity %>% group_by(date) %>% summarise(stepsum = sum(steps, na.rm = TRUE))
 
+qplot(date, data=stepperday, weight=stepsum, geom="histogram")
+
+meanstepperday <- mean(stepperday$stepsum)
+medianstepperday <- median(stepperday$stepsum)
+
+```
 
 ## What is the average daily activity pattern?
+```{r}
+###ggplot(data=activity) + geom_line(aes(interval, steps, group = date, color = date)) + 
+  
+###ggplot(data=activity) + geom_line(aes(interval, mean(steps, na.rm=T), group = interval))
 
+meandaily <- activity %>% group_by(interval) %>% 
+                          summarise(stepmean = mean(steps, na.rm = TRUE))
 
+qplot(interval, stepmean, data=meandaily, geom="line")
+
+maxdaily <- meandaily %>% filter(stepmean == max(meandaily$stepmean))
+maxdaily
+
+```
 
 ## Imputing missing values
+```{r}
+naactivity <- activity %>% filter(is.na(steps))
+impactivity <- inner_join(naactivity,meandaily,by=c("interval" = "interval"))
 
+### impute missing values as the average observed steps within the interval
+imputedactivity <- activity %>% 
+                   group_by(interval) %>%
+                   mutate(steps= replace(steps, is.na(steps), mean(steps, na.rm=TRUE)))
+                   
+imputedstepperday <- activity %>% group_by(date) %>% summarise(stepsum = sum(steps, na.rm = TRUE))
 
+### explore the imputed results
+qplot(date, data=imputedstepperday, weight=stepsum, geom="histogram")
 
+meanimputedstepperday <- mean(imputedstepperday$stepsum)
+medianimputedstepperday <- median(imputedstepperday$stepsum)
+
+```
 ## Are there differences in activity patterns between weekdays and weekends?
