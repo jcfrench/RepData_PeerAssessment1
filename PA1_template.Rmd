@@ -7,7 +7,15 @@ output: html_document
 
 
 ## Loading and preprocessing the data
+1) Set the working directory path
+2) Download the compressed activity data
+3) Decompress the data
+4) Load the data into a dplyr tbl_df
+5) Sumarize the raw data
 
+Based on the Summary, we can see that there are 3 fields in this data set; steps, date, interval. These fields are described in the course assignment.
+
+On cursory review, 2304 records (13%) are missing steps (NA). 
 ```{r}
 setwd("~/RepData/data")
 download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip", 
