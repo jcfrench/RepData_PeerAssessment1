@@ -5,17 +5,28 @@ date: "4/6/2015"
 output: html_document
 ---
 
+### Required R Packages
+dplyr 0.4.1
+
+ggplot2 1.0.1
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+```
 
 ## Loading and preprocessing the data
-1) Set the working directory path
-2) Download the compressed activity data
-3) Decompress the data
-4) Load the data into a dplyr tbl_df
-5) Sumarize the raw data
+1. Set the working directory path
+2. Download the compressed activity data
+3. Decompress the data
+4. Load the data into a dplyr tbl_df
+5. Sumarize the raw data
 
-Based on the Summary, we can see that there are 3 fields in this data set; steps, date, interval. These fields are described in the course assignment.
+Based on the summary, we can see that there are 3 fields in this data set; steps, date, interval. These fields are described in the course assignment.  
 
 On cursory review, 2304 records (13%) are missing steps (NA). 
+
 ```{r}
 setwd("~/RepData/data")
 download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip", 
@@ -29,6 +40,12 @@ summary(activity)
 ```
 
 ## What is mean total number of steps taken per day?
+Here, we use the dplyr package to quickly group activities by date, and then tally the steps per day. The "step per day" calculation is acheived via a dplyr pipeline construct: group activity records by date, summarise steps via sum, ignoring "NA" values.  
+
+Next, plot the sum of steps per day in a historgram.  
+
+Lastly, calculate the mean steps per day, and the median steps per day.  
+
 ```{r}
 
 stepperday <- activity %>% group_by(date) %>% summarise(stepsum = sum(steps, na.rm = TRUE))
@@ -41,6 +58,8 @@ medianstepperday <- median(stepperday$stepsum)
 ```
 
 ## What is the average daily activity pattern?
+
+
 ```{r}
 ###ggplot(data=activity) + geom_line(aes(interval, steps, group = date, color = date)) + 
   
@@ -76,3 +95,31 @@ medianimputedstepperday <- median(imputedstepperday$stepsum)
 
 ```
 ## Are there differences in activity patterns between weekdays and weekends?
+
+By filtering the imputed activity into weekend vs. weekday subsets, we can see that activity across a weekend day is generally higher then the activity across a working week day.  
+
+According the lubridate package functionality, Sundays are coded as wday == 1, while Saturdays are coded as wday == 7.  
+
+Split the imputed activities, seperating weekend days from work week days.  
+
+Next, create daily average activity patterns for work days vs. weekends.  
+
+Finally, provide a comparison plot.
+
+```{r}
+wendactivity <- imputedactivity %>% filter(wday(ymd(date)) %in% c(1,7))
+wdayactivity <- imputedactivity %>% filter(! wday(ymd(date)) %in% c(1,7))
+
+wenddaily <- wendactivity %>% 
+  group_by(interval) %>% 
+  summarise(stepmean = mean(steps))
+
+wdaydaily <- wdayactivity %>% 
+  group_by(interval) %>% 
+  summarise(stepmean = mean(steps))
+
+qplot(interval, stepmean, data=wdaydaily, geom="line")
+qplot(interval, stepmean, data=wenddaily, geom="line")
+
+```
+
