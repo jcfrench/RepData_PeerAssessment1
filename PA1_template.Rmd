@@ -14,9 +14,9 @@ This document contains a series of five chunks of R code which provide an analys
 - Exploratory analysis of workday activity patterns vs. weekend activity patterns
 
 ### Required R Packages
--dplyr 0.4.1
--ggplot2 1.0.1
--lubridate 1.3.3
+- dplyr 0.4.1
+- ggplot2 1.0.1
+- lubridate 1.3.3
 
 ```{r}
 library(dplyr)
