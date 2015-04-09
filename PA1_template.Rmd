@@ -5,10 +5,18 @@ date: "4/6/2015"
 output: html_document
 ---
 
-### Required R Packages
-dplyr 0.4.1
+## Introduction
+This document contains a series of five chunks of R code which provide an analysis of user step activity recorded over time.
+- Data Loading and Preprocessing
+- Exploratory analysis of mean and median steps per day
+- Exploratory analysis of daily activity patterns
+- Data Correction to impute missing step values
+- Exploratory analysis of workday activity patterns vs. weekend activity patterns
 
-ggplot2 1.0.1
+### Required R Packages
+-dplyr 0.4.1
+-ggplot2 1.0.1
+-lubridate 1.3.3
 
 ```{r}
 library(dplyr)
