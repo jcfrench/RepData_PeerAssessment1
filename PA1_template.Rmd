@@ -75,7 +75,7 @@ summary(stepperday)
 meanpattern <- activity %>% group_by(interval) %>% 
                           summarise(stepmean = mean(steps, na.rm = TRUE))
 
-qplot(interval, stepmean, data=meanpattern, geom="line")
+qplot(interval, stepmean, data=meanpattern, geom=c("line","smooth"))
 
 maxpattern <- meanpattern %>% filter(stepmean == max(meanpattern$stepmean))
 maxpattern
@@ -92,7 +92,7 @@ imputedactivity <- activity %>%
                    group_by(interval) %>%
                    mutate(steps= replace(steps, is.na(steps), mean(steps, na.rm=TRUE)))
                    
-imputedstepperday <- activity %>% group_by(date) %>% summarise(stepsum = sum(steps, na.rm = TRUE))
+imputedstepperday <- imputedactivity %>% group_by(date) %>% summarise(stepsum = sum(steps, na.rm = TRUE))
 
 ### explore the imputed results
 qplot(date, data=imputedstepperday, weight=stepsum, geom="histogram")
@@ -125,10 +125,27 @@ weekendpattern <- weekendactivity %>%
   group_by(weekend,interval) %>% 
   summarise(stepmean = mean(steps))
 
+summary(weekendpattern)
+
 ggplot(weekendpattern, aes(interval,stepmean)) +
   geom_line(color="blue") +
   stat_smooth(color="purple") +
   facet_wrap(~weekend,nrow=2)
 
 ```
+
+## Summary
+The exploratory analysis of the activity data set determined the following interesting facts:
+
+1. The source data was missing step counts for roughly 13% of recorded observations.
+
+2. On average, 9354 steps were taken per day, with a median of 10395 steps per day.
+
+3. The average daily pattern of steps has an early spike of activity at the 835 time interval.
+
+4. Imputing missing values shifts the mean and median to 10766
+
+5. Weekday daily activity patterns were compared to workday daily activity patterns. Weekend patterns show a higher level of activity spread across the entire day, whereas the weekday  pattern is similar to the average daily pattern presented in section 3.   
+
+In summary, the weekday daily activity pattern is distinct from the weekend daily activity pattern.
 
