@@ -36,13 +36,9 @@ Based on the summary, we can see that there are 3 fields in this data set; steps
 On cursory review, 2304 records (13%) are missing steps (NA). 
 
 ```{r}
-setwd("~/RepData/data")
-download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip", 
-              "~/RepData/data/repdata+data+activity.zip", method="curl", 
-              quiet = FALSE, mode = "wb"
-              )
-unzip("repdata+data+activity.zip")
-activity <- tbl_df(read.csv("~/RepData/data/activity.csv"))
+setwd("~/data/RepData/RepData_PeerAssessment1")
+unzip("activity.zip")
+activity <- tbl_df(read.csv("activity.csv"))
 summary(activity)
 
 ```
@@ -58,7 +54,9 @@ Lastly, calculate the mean steps per day, and the median steps per day.
 
 stepperday <- activity %>% group_by(date) %>% summarise(stepsum = sum(steps, na.rm = TRUE))
 
-qplot(date, data=stepperday, weight=stepsum, geom="histogram")
+qplot(date, data=stepperday, weight=stepsum, geom="histogram") + 
+        scale_x_discrete(
+                breaks=stepperday$date[seq(1,dim(stepperday)[1],by=10)])
 
 summary(stepperday)
 
@@ -95,7 +93,9 @@ imputedactivity <- activity %>%
 imputedstepperday <- imputedactivity %>% group_by(date) %>% summarise(stepsum = sum(steps, na.rm = TRUE))
 
 ### explore the imputed results
-qplot(date, data=imputedstepperday, weight=stepsum, geom="histogram")
+qplot(date, data=imputedstepperday, weight=stepsum, geom="histogram") + 
+        scale_x_discrete(
+                breaks=imputedstepperday$date[seq(1,dim(imputedstepperday)[1],by=10)])
 
 summary(imputedstepperday)
 
@@ -147,5 +147,5 @@ The exploratory analysis of the activity data set determined the following inter
 
 5. Weekday daily activity patterns were compared to workday daily activity patterns. Weekend patterns show a higher level of activity spread across the entire day, whereas the weekday  pattern is similar to the average daily pattern presented in section 3.   
 
-In summary, the weekday daily activity pattern is distinct from the weekend daily activity pattern.
+The weekday daily activity pattern is distinct from the weekend daily activity pattern.
 
