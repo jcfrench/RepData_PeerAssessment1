@@ -1,7 +1,7 @@
 ---
 title: "Reproducible Research: Peer Assessment 1"
 author: "JCFrench"
-date: "4/6/2015"
+date: "4/17/2015"
 output: html_document
 ---
 ## Introduction
@@ -34,8 +34,6 @@ library(lubridate)
 
 Based on the summary, we can see that there are 3 fields in this data set; steps, date, interval. These fields are described in the course assignment.  
 
-On cursory review, 2304 records (13%) are missing steps (NA). 
-
 
 ```r
 setwd("~/data/RepData/RepData_PeerAssessment1")
@@ -55,23 +53,38 @@ summary(activity)
 ##  NA's   :2304     (Other)   :15840
 ```
 
-## What is mean total number of steps taken per day?
-Here, we use the dplyr package to quickly group activities by date, and then tally the steps per day. The "step per day" calculation is acheived via a dplyr pipeline construct: group activity records by date, summarise steps via sum, ignoring "NA" values.  
+```r
+### proportion of rows missing steps:
+2304 / (2304 +15840)
+```
+
+```
+## [1] 0.1269841
+```
+
+On cursory review, 2304 records (13%) are missing steps (NA).  
+
+## What is the mean total number of steps taken per day?
+Here, we use the dplyr package to quickly group activities by date, and then tally the steps per day. The "step per day" calculation is acheived via a dplyr pipeline construct:   
+-group activity records by date,  
+-summarise steps via sum, ignoring "NA" values.  
 
 Next, plot the sum of steps per day in a historgram.  
 
-Lastly, calculate the mean steps per day, and the median steps per day.  
+Lastly, report the mean steps per day, and the median steps per day as part of standard summary statistics for the summarized data.  
 
 
 ```r
-stepperday <- activity %>% group_by(date) %>% summarise(stepsum = sum(steps, na.rm = TRUE))
+stepperday <- activity %>% 
+        group_by(date) %>% 
+        summarise(stepsum = sum(steps, na.rm = TRUE))
 
 qplot(date, data=stepperday, weight=stepsum, geom="histogram") + 
         scale_x_discrete(
                 breaks=stepperday$date[seq(1,dim(stepperday)[1],by=10)])
 ```
 
-![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.png) 
+![plot of chunk meanstepperday](figure/meanstepperday-1.png) 
 
 ```r
 summary(stepperday)
@@ -89,14 +102,10 @@ summary(stepperday)
 ```
 
 ## What is the average daily activity pattern?
-
+The averge daily activity pattern is modelled as the average of steps across all days for each five minute activity pattern.
 
 
 ```r
-###ggplot(data=activity) + geom_line(aes(interval, steps, group = date, color = date)) + 
-  
-###ggplot(data=activity) + geom_line(aes(interval, mean(steps, na.rm=T), group = interval))
-
 meanpattern <- activity %>% group_by(interval) %>% 
                           summarise(stepmean = mean(steps, na.rm = TRUE))
 
@@ -107,7 +116,7 @@ qplot(interval, stepmean, data=meanpattern, geom=c("line","smooth"))
 ## geom_smooth: method="auto" and size of largest group is <1000, so using loess. Use 'method = x' to change the smoothing method.
 ```
 
-![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4-1.png) 
+![plot of chunk averagedailyactivitypattern](figure/averagedailyactivitypattern-1.png) 
 
 ```r
 maxpattern <- meanpattern %>% filter(stepmean == max(meanpattern$stepmean))
@@ -121,26 +130,35 @@ maxpattern
 ## 1      835 206.1698
 ```
 
+After calculating the average steps for each interval, we can see that a typical day has an morning activity spike.
+
+
 ## Imputing missing values
+Here, we impute missing step values. After grouping the activity records by intervals, the replace function computes the mean steps for each interval as the replacement for each missing steps value.  
+
+Once this computation has been completed, the imputed results are plotted and summarized for comparison to the original activity data.  
+
 
 ```r
-naactivity <- activity %>% filter(is.na(steps))
-impactivity <- inner_join(naactivity,meanpattern,by=c("interval" = "interval"))
-
-### impute missing values as the average observed steps within the interval
+### impute missing values as the mean steps within each interval
 imputedactivity <- activity %>% 
                    group_by(interval) %>%
-                   mutate(steps= replace(steps, is.na(steps), mean(steps, na.rm=TRUE)))
-                   
+                   mutate(steps= replace(steps, 
+                                         is.na(steps), 
+                                         mean(steps, na.rm=TRUE)))
+
 imputedstepperday <- imputedactivity %>% group_by(date) %>% summarise(stepsum = sum(steps, na.rm = TRUE))
 
 ### explore the imputed results
 qplot(date, data=imputedstepperday, weight=stepsum, geom="histogram") + 
         scale_x_discrete(
-                breaks=imputedstepperday$date[seq(1,dim(imputedstepperday)[1],by=10)])
+                breaks=imputedstepperday$date[seq(1,
+                                                  dim(imputedstepperday)[1],
+                                                  by=10)]
+                )
 ```
 
-![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5-1.png) 
+![plot of chunk imputevalues](figure/imputevalues-1.png) 
 
 ```r
 summary(imputedstepperday)
@@ -156,17 +174,19 @@ summary(imputedstepperday)
 ##  2012-10-06: 1   Max.   :21194  
 ##  (Other)   :55
 ```
+Here, we see that imputing missing values increased the mean steps per day. This is normal.  
+
 ## Are there differences in activity patterns between weekdays and weekends?
 
 By filtering the imputed activity into weekend vs. weekday subsets, we can see that activity across a weekend day is generally higher then the activity across a working week day.  
 
 According the lubridate package functionality, Sundays are coded as "wday == 1"", while Saturdays are coded as "wday == 7".  
 
-Split the imputed activities, seperating weekend days from work week days.  
+We split the imputed activities, seperating weekend days from work week days.  
 
-Next, create daily average activity patterns for work days vs. weekends.  
+Next, daily average activity patterns are computed for "work days" vs. "weekends".  
 
-Finally, provide a comparison plot.
+Finally, the new activity patterns are plotted for visual comparison.
 
 
 ```r
@@ -207,7 +227,7 @@ ggplot(weekendpattern, aes(interval,stepmean)) +
 ## geom_smooth: method="auto" and size of largest group is <1000, so using loess. Use 'method = x' to change the smoothing method.
 ```
 
-![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6-1.png) 
+![plot of chunk compareactivitypatterns](figure/compareactivitypatterns-1.png) 
 
 ## Summary
 The exploratory analysis of the activity data set determined the following interesting facts:
@@ -216,7 +236,7 @@ The exploratory analysis of the activity data set determined the following inter
 
 2. On average, 9354 steps were taken per day, with a median of 10395 steps per day.
 
-3. The average daily pattern of steps has an early spike of activity at the 835 time interval.
+3. The average daily pattern of steps has an early stepmean spike of 206 steps at the 835 time interval.
 
 4. Imputing missing values shifts the mean and median to 10766
 
